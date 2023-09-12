@@ -3,6 +3,7 @@ import { RssList, RssModel } from './interface/rss';
 import { ofetch } from 'ofetch';
 import { xmlToJson } from 'src/utils/xml-parser';
 import { Model } from 'mongoose';
+import { Cron, CronExpression } from '@nestjs/schedule';
 const rssList: RssList = [
   {
     name: 'Sukka',
@@ -39,6 +40,7 @@ export class RssCrawleeService {
   constructor(@Inject('RSS_MODEL') private readonly rssModel: Model<RssModel>) {
     //
   }
+  @Cron(CronExpression.EVERY_12_HOURS)
   fetchRss() {
     return Promise.all(
       rssList.map(async (rssItem) => {
