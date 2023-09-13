@@ -15,6 +15,6 @@ async function bootstrap() {
     root: join(__dirname, 'public'),
     prefix: '/public/',
   });
-  await app.listen(3000);
+  await app.listen(8080);
 }
 bootstrap();
