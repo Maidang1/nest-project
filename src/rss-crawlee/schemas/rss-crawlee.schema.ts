@@ -18,3 +18,9 @@ export const RssSchema = new mongoose.Schema({
     },
   ],
 });
+
+export const UsersSchema = new mongoose.Schema({
+  name: String,
+  email: String,
+  subscribeRss: [{ name: String, url: String }],
+});

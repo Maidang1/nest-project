@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { RssList, RssModel } from './interface/rss';
+import { RssList, RssModel, UsersModel } from './interface/rss';
 import { ofetch } from 'ofetch';
 import { xmlToJson } from 'src/utils/xml-parser';
 import { Model } from 'mongoose';
@@ -37,7 +37,10 @@ const rssList: RssList = [
 
 @Injectable()
 export class RssCrawleeService {
-  constructor(@Inject('RSS_MODEL') private readonly rssModel: Model<RssModel>) {
+  constructor(
+    @Inject('RSS_MODEL') private readonly rssModel: Model<RssModel>,
+    @Inject('USERS') private readonly usersModel: Model<UsersModel>,
+  ) {
     //
   }
   @Cron(CronExpression.EVERY_12_HOURS)
@@ -48,12 +51,43 @@ export class RssCrawleeService {
           responseType: 'json',
           parseResponse: xmlToJson,
         });
-        this.rssModel.create(data);
+        this.rssModel.create({
+          ...data,
+          metaData: {
+            ...rssItem,
+          },
+        });
         return data;
       }),
     );
   }
   getRss() {
     return this.rssModel.find({});
+  }
+
+  createUserLink(data: UsersModel) {
+    const { name, email, subscribeRss } = data;
+    return this.usersModel.updateOne(
+      { name, email },
+      { name, email, subscribeRss },
+      {
+        setDefaultsOnInsert: true,
+        upsert: true,
+      },
+    );
+  }
+  getUserSubscribeRssLink({ name, email }: Pick<UsersModel, 'email' | 'name'>) {
+    return this.usersModel.findOne({ name, email });
+  }
+  async getUserSubscribeRssFeed({
+    name,
+    email,
+  }: Pick<UsersModel, 'email' | 'name'>) {
+    const subscribeRss = (
+      await this.usersModel.findOne({ name, email })
+    ).toJSON().subscribeRss;
+    return this.rssModel.find({
+      'metaData.url': { $in: subscribeRss.map((sub) => sub.url) },
+    });
   }
 }

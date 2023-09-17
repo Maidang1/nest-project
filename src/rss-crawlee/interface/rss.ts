@@ -21,3 +21,9 @@ export interface RssModel {
     published: string;
   }[];
 }
+
+export interface UsersModel {
+  name: string;
+  email: string;
+  subscribeRss: { name: string; url: string }[];
+}
