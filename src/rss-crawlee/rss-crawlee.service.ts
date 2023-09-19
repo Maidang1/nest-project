@@ -51,12 +51,23 @@ export class RssCrawleeService {
           responseType: 'json',
           parseResponse: xmlToJson,
         });
-        this.rssModel.create({
-          ...data,
-          metaData: {
-            ...rssItem,
+        this.rssModel.updateOne(
+          {
+            metaData: {
+              ...rssItem,
+            },
           },
-        });
+          {
+            ...data,
+            metaData: {
+              ...rssItem,
+            },
+          },
+          {
+            setDefaultsOnInsert: true,
+            upsert: true,
+          },
+        );
         return data;
       }),
     );
